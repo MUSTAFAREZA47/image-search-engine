@@ -1,62 +1,72 @@
-const searchForm = document.getElementById("search-form")
-const searchBox = document.getElementById("search-box")
-const searchResult = document.getElementById("search-result")
-const showMoreBtn = document.getElementById("show-more-btn")
+const searchForm = document.getElementById("search-form");
+const searchBox = document.getElementById("search-box");
+const searchResult = document.getElementById("search-result");
+const showMoreBtn = document.getElementById("show-more-btn");
 
-const count = 30
-const apiKey = 'b8HbiEfRxZcXm3AYSQzH3QkWUx3AWesqq8WsuzA-Om0'
-const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${count}`
+const apiKey = 'b8HbiEfRxZcXm3AYSQzH3QkWUx3AWesqq8WsuzA-Om0';
+let keyword = "";
+let page = 1;
 
-let keyword = ""
-let page = 1
+async function searchImages() {
+    keyword = searchBox.value.trim(); // Trim spaces
+    if (!keyword) {
+        alert("Please enter a search term.");
+        return;
+    }
 
-async function searchImages(){
-    keyword = searchBox.value
-    const url = `https://api.unsplash.com/search/photos?page=${page}&query=${keyword}&client_id=${apiKey}&per_page=12`
+    const url = `https://api.unsplash.com/search/photos?page=${page}&query=${keyword}&client_id=${apiKey}&per_page=12`;
 
-    const response = await fetch(url)
-    const data = await response.json()
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error("Failed to fetch images");
+        }
+        const data = await response.json();
 
-    // if (page === 1){
-    //     searchResult.innerHTML = ""
-    // }
+        if (page === 1) {
+            searchResult.innerHTML = ""; // Clear old results for a new search
+        }
 
-    // console.log(data)
+        const results = data.results;
 
-    const results = data.results
+        if (results.length === 0) {
+            if (page === 1) {
+                searchResult.innerHTML = "<p>No results found. Try another search term.</p>";
+            }
+            showMoreBtn.style.display = "none";
+            return;
+        }
 
-    results.map((result) => {
-        const image = document.createElement("img")
+        results.forEach((result) => {
+            const image = document.createElement("img");
+            image.src = result.urls.small;
+            image.alt = result.alt_description || "Unsplash Image";
 
-        image.src = result.urls.small
+            const imageLink = document.createElement("a");
+            imageLink.href = result.links.html;
+            imageLink.target = "_blank";
 
-        const imageLink = document.createElement('a')
+            imageLink.appendChild(image);
+            searchResult.insertBefore(imageLink, showMoreBtn);
+        });
 
-        imageLink.href = result.links.html
-
-        imageLink.target = "_blank"
-
-        imageLink.appendChild(image)
-
-        searchResult.insertBefore(imageLink, showMoreBtn)
-    })
-
-    showMoreBtn.style.display = 'block'
-    
+        showMoreBtn.style.display = "block"; // Show the "Show More" button
+    } catch (error) {
+        console.error(error);
+        searchResult.innerHTML = "<p>Something went wrong. Please try again later.</p>";
+        showMoreBtn.style.display = "none";
+    }
 }
 
+// Handle form submission
+searchForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    page = 1; // Reset page number for a new search
+    searchImages();
+});
 
-
-searchForm.addEventListener('submit', (e) => {
-    e.preventDefault()
-    page = 1 
-
-    searchImages()
-})
-
-
-showMoreBtn.addEventListener('click', () => {
-    page++
-
-    searchImages()
-})
+// Handle "Show More" button click
+showMoreBtn.addEventListener("click", () => {
+    page++;
+    searchImages();
+});
