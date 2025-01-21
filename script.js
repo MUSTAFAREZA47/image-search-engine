@@ -1,12 +1,3 @@
-const searchForm = document.getElementById("search-form");
-const searchBox = document.getElementById("search-box");
-const searchResult = document.getElementById("search-result");
-const showMoreBtn = document.getElementById("show-more-btn");
-
-const apiKey = 'b8HbiEfRxZcXm3AYSQzH3QkWUx3AWesqq8WsuzA-Om0';
-let keyword = "";
-let page = 1;
-
 async function searchImages() {
     keyword = searchBox.value.trim(); // Trim spaces
     if (!keyword) {
@@ -47,8 +38,12 @@ async function searchImages() {
             imageLink.target = "_blank";
 
             imageLink.appendChild(image);
-            searchResult.insertBefore(imageLink, showMoreBtn);
+            searchResult.appendChild(imageLink); // Append the image link directly to `searchResult`
         });
+
+        if (!searchResult.contains(showMoreBtn)) {
+            searchResult.appendChild(showMoreBtn); // Ensure `showMoreBtn` is appended only once
+        }
 
         showMoreBtn.style.display = "block"; // Show the "Show More" button
     } catch (error) {
@@ -57,16 +52,3 @@ async function searchImages() {
         showMoreBtn.style.display = "none";
     }
 }
-
-// Handle form submission
-searchForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    page = 1; // Reset page number for a new search
-    searchImages();
-});
-
-// Handle "Show More" button click
-showMoreBtn.addEventListener("click", () => {
-    page++;
-    searchImages();
-});
